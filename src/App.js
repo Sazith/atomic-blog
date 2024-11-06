@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+/* eslint-disable react/jsx-no-target-blank */
+import { createContext, useContext, useEffect, useState } from "react";
 import { faker } from "@faker-js/faker";
 
 function createRandomPost() {
@@ -7,6 +8,8 @@ function createRandomPost() {
     body: faker.hacker.phrase(),
   };
 }
+
+const PostContext = createContext()
 
 function App() {
   const [posts, setPosts] = useState(() =>
@@ -42,6 +45,15 @@ function App() {
   );
 
   return (
+    <PostContext.Provider
+    value={{
+      posts: searchedPosts,
+      onAddPost: handleAddPost,
+      onClearPosts:handleClearPosts,
+      searchQuery,
+      setSearchQuery
+    }}
+    >
     <section>
       <button
         onClick={() => setIsFakeDark((isFakeDark) => !isFakeDark)}
@@ -50,30 +62,33 @@ function App() {
         {isFakeDark ? "☀️" : "🌙"}
       </button>
 
-      <Header
+      {/* <Header
         posts={searchedPosts}
         onClearPosts={handleClearPosts}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-      />
+      /> */}
+      <Header/>
       <Main posts={searchedPosts} onAddPost={handleAddPost} />
       <Archive onAddPost={handleAddPost} />
       <Footer />
     </section>
+    </PostContext.Provider>
   );
 }
 
-function Header({ posts, onClearPosts, searchQuery, setSearchQuery }) {
+function Header() {
+
+  const {onClearPosts} = useContext(PostContext)
+
   return (
     <header>
       <h1>
         <span>⚛️</span>The Atomic Blog
       </h1>
       <div>
-        <Results posts={posts} />
+        <Results />
         <SearchPosts
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
         />
         <button onClick={onClearPosts}>Clear posts</button>
       </div>
@@ -81,7 +96,8 @@ function Header({ posts, onClearPosts, searchQuery, setSearchQuery }) {
   );
 }
 
-function SearchPosts({ searchQuery, setSearchQuery }) {
+function SearchPosts() {
+  const { searchQuery, setSearchQuery } = useContext(PostContext)
   return (
     <input
       value={searchQuery}
@@ -91,11 +107,17 @@ function SearchPosts({ searchQuery, setSearchQuery }) {
   );
 }
 
-function Results({ posts }) {
+function Results() {
+
+  const { posts } = useContext(PostContext)
+
   return <p>🚀 {posts.length} atomic posts found</p>;
 }
 
-function Main({ posts, onAddPost }) {
+function Main() {
+
+  const { posts, onAddPost } = useContext(PostContext)
+
   return (
     <main>
       <FormAddPost onAddPost={onAddPost} />
@@ -104,7 +126,10 @@ function Main({ posts, onAddPost }) {
   );
 }
 
-function Posts({ posts }) {
+function Posts() {
+
+  const { posts } = useContext(PostContext)
+
   return (
     <section>
       <List posts={posts} />
@@ -112,7 +137,10 @@ function Posts({ posts }) {
   );
 }
 
-function FormAddPost({ onAddPost }) {
+function FormAddPost() {
+
+  const { onAddPost } = useContext(PostContext)
+
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
 
@@ -141,7 +169,10 @@ function FormAddPost({ onAddPost }) {
   );
 }
 
-function List({ posts }) {
+function List() {
+
+  const { posts } = useContext(PostContext)
+
   return (
     <ul>
       {posts.map((post, i) => (
@@ -154,8 +185,9 @@ function List({ posts }) {
   );
 }
 
-function Archive({ onAddPost }) {
-  // Here we don't need the setter function. We're only using state to store these posts because the callback function passed into useState (which generates the posts) is only called once, on the initial render. So we use this trick as an optimization technique, because if we just used a regular variable, these posts would be re-created on every render. We could also move the posts outside the components, but I wanted to show you this trick 😉
+function Archive() {
+  const { onAddPost } = useContext(PostContext)
+ 
   const [posts] = useState(() =>
     // 💥 WARNING: This might make your computer slow! Try a smaller `length` first
     Array.from({ length: 10000 }, () => createRandomPost())
@@ -187,7 +219,9 @@ function Archive({ onAddPost }) {
 }
 
 function Footer() {
-  return <footer>&copy; by The Atomic Blog ✌️</footer>;
+  return (<footer>&copy; The Atomic Blog by 
+    <a href="https://github.com/Sazith" target="_blank"> Sazith Shyonton</a> ✌️
+    </footer>);
 }
 
 export default App;
